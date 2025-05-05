@@ -96,7 +96,7 @@ export function CountdownTimer({
             if (interval) clearInterval(interval);
             setIsActive(false);
             if (onComplete) onComplete();
-            return 0;
+            return validatedInitialSeconds; // Reset to initial value instead of 0
           }
           return prevSeconds - 1;
         });
@@ -106,7 +106,13 @@ export function CountdownTimer({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, seconds, onComplete, isPausedInternal]);
+  }, [
+    isActive,
+    seconds,
+    onComplete,
+    isPausedInternal,
+    validatedInitialSeconds,
+  ]);
 
   const formatTime = (time: number) => {
     const hours = Math.floor(time / 3600);
