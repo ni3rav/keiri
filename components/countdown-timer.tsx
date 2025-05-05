@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { cn } from "~/lib/utils";
+import { ChevronUp, ChevronDown, Pause, Play, RotateCcw } from "lucide-react";
+import { Button } from "./ui/button";
+
+const MIN_TIME = 30 * 60; // 30 minutes in seconds
+const MAX_TIME = 3 * 60 * 60; // 3 hours in seconds
+const TIME_STEP = 10 * 60; // 10 minutes in seconds
 
 interface CountdownTimerProps {
   seconds: number;
@@ -10,6 +16,7 @@ interface CountdownTimerProps {
   onComplete?: () => void;
   isPaused?: boolean;
   reset?: boolean;
+  onTimeChange?: (seconds: number) => void;
 }
 
 export function CountdownTimer({
@@ -18,26 +25,71 @@ export function CountdownTimer({
   onComplete,
   isPaused = false,
   reset = false,
+  onTimeChange,
 }: CountdownTimerProps) {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const [isActive, setIsActive] = useState(true);
+  const validatedInitialSeconds = Math.max(
+    MIN_TIME,
+    Math.min(MAX_TIME, Math.round(initialSeconds))
+  );
+
+  const [seconds, setSeconds] = useState(validatedInitialSeconds);
+  const [isActive, setIsActive] = useState(false);
+  const [isPausedInternal, setIsPausedInternal] = useState(isPaused);
+
+  const incrementTime = () => {
+    setSeconds((prev) => {
+      const newValue = Math.min(prev + TIME_STEP, MAX_TIME);
+      onTimeChange?.(newValue);
+      return newValue;
+    });
+  };
+
+  const decrementTime = () => {
+    setSeconds((prev) => {
+      const newValue = Math.max(prev - TIME_STEP, MIN_TIME);
+      onTimeChange?.(newValue);
+      return newValue;
+    });
+  };
+
+  const handlePause = () => {
+    setIsPausedInternal((prev) => !prev);
+  };
+
+  const handleReset = () => {
+    setSeconds(validatedInitialSeconds);
+    setIsActive(false);
+    setIsPausedInternal(false);
+  };
+
+  const startTimer = () => {
+    setIsActive(true);
+  };
 
   useEffect(() => {
-    setSeconds(initialSeconds);
-    setIsActive(true);
+    const validatedSeconds = Math.max(
+      MIN_TIME,
+      Math.min(MAX_TIME, Math.round(initialSeconds))
+    );
+    setSeconds(validatedSeconds);
+    setIsActive(false);
   }, [initialSeconds]);
 
   useEffect(() => {
     if (reset) {
-      setSeconds(initialSeconds);
-      setIsActive(true);
+      const validatedSeconds = Math.max(
+        MIN_TIME,
+        Math.min(MAX_TIME, Math.round(initialSeconds))
+      );
+      setSeconds(validatedSeconds);
+      setIsActive(false);
     }
   }, [reset, initialSeconds]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
-    if (isActive && seconds > 0 && !isPaused) {
+    if (isActive && seconds > 0 && !isPausedInternal) {
       interval = setInterval(() => {
         setSeconds((prevSeconds) => {
           if (prevSeconds <= 1) {
@@ -54,9 +106,8 @@ export function CountdownTimer({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, seconds, onComplete, isPaused]);
+  }, [isActive, seconds, onComplete, isPausedInternal]);
 
-  // Format time
   const formatTime = (time: number) => {
     const hours = Math.floor(time / 3600);
     const minutes = Math.floor((time % 3600) / 60);
@@ -71,13 +122,79 @@ export function CountdownTimer({
   const { hours, minutes, seconds: secs } = formatTime(seconds);
 
   return (
-    <div className={cn("flex items-center justify-center", className)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center gap-6",
+        className
+      )}
+    >
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        <button
+          onClick={incrementTime}
+          disabled={seconds >= MAX_TIME || isActive}
+          className="p-2 rounded-full hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Increase time"
+        >
+          <ChevronUp className="h-6 w-6" />
+        </button>
+      </div>
       <div className="flex items-center space-x-2 sm:space-x-4">
         <TimeUnit label="Hours" value={hours} />
         <div className="text-2xl sm:text-4xl font-bold text-primary">:</div>
         <TimeUnit label="Minutes" value={minutes} />
         <div className="text-2xl sm:text-4xl font-bold text-primary">:</div>
         <TimeUnit label="Seconds" value={secs} />
+      </div>
+      <div className="flex items-center space-x-2 sm:space-x-4">
+        <button
+          onClick={decrementTime}
+          disabled={seconds <= MIN_TIME || isActive}
+          className="p-2 rounded-full hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Decrease time"
+        >
+          <ChevronDown className="h-6 w-6" />
+        </button>
+      </div>
+      <div className="flex flex-col sm:flex-row items-center gap-4 mt-2">
+        {!isActive ? (
+          <Button
+            size="lg"
+            variant="default"
+            className="w-40 font-bold"
+            onClick={startTimer}
+          >
+            <Play className="w-4 h-4 mr-2" />
+            Start
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            variant="default"
+            className="w-40 font-bold"
+            onClick={handlePause}
+          >
+            {isPausedInternal ? (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                Resume
+              </>
+            ) : (
+              <>
+                <Pause className="w-4 h-4 mr-2" />
+                Pause
+              </>
+            )}
+          </Button>
+        )}
+        <Button
+          size="lg"
+          variant="destructive"
+          className="w-40 font-bold"
+          onClick={handleReset}
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Reset
+        </Button>
       </div>
     </div>
   );
