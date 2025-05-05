@@ -8,12 +8,16 @@ interface CountdownTimerProps {
   seconds: number;
   className?: string;
   onComplete?: () => void;
+  isPaused?: boolean;
+  reset?: boolean;
 }
 
 export function CountdownTimer({
   seconds: initialSeconds,
   className,
   onComplete,
+  isPaused = false,
+  reset = false,
 }: CountdownTimerProps) {
   const [seconds, setSeconds] = useState(initialSeconds);
   const [isActive, setIsActive] = useState(true);
@@ -24,9 +28,16 @@ export function CountdownTimer({
   }, [initialSeconds]);
 
   useEffect(() => {
+    if (reset) {
+      setSeconds(initialSeconds);
+      setIsActive(true);
+    }
+  }, [reset, initialSeconds]);
+
+  useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
-    if (isActive && seconds > 0) {
+    if (isActive && seconds > 0 && !isPaused) {
       interval = setInterval(() => {
         setSeconds((prevSeconds) => {
           if (prevSeconds <= 1) {
@@ -43,7 +54,7 @@ export function CountdownTimer({
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, seconds, onComplete]);
+  }, [isActive, seconds, onComplete, isPaused]);
 
   // Format time
   const formatTime = (time: number) => {
