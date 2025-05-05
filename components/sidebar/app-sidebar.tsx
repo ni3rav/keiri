@@ -1,5 +1,5 @@
-import { PieChart, Goal, LogOut, Timer, Axe } from "lucide-react";
-import Link from "next/link";
+import { LogOut, Axe } from "lucide-react";
+import { SideBarMenuItems } from "./sidebar-menu-item";
 
 import {
   Sidebar,
@@ -7,32 +7,11 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "~/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-
-const items = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Timer,
-  },
-  {
-    title: "Statistics",
-    url: "/stats",
-    icon: PieChart,
-  },
-  {
-    title: "Goals",
-    url: "/goals",
-    icon: Goal,
-  },
-];
 
 export function AppSidebar() {
   return (
@@ -49,26 +28,9 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-medium px-2 py-1.5">
-            Dashboard
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    className="py-3 transition-colors hover:bg-primary/10"
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="h-5 w-5" />
-                      <span className="font-medium ml-3 truncate">
-                        {item.title}
-                      </span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SideBarMenuItems />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

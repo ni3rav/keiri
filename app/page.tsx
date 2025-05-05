@@ -1,10 +1,9 @@
-
-import { Button } from "~/components/ui/button";
+import { CountdownTimer } from "~/components/countdown-timer";
 
 export default function Home() {
   return (
-      <div className="h-screen w-screen grid place-items-center">
-        <Button>Hello World</Button>
-      </div>
+    <div className="h-screen w-screen flex flex-col items-center justify-center">
+      <CountdownTimer seconds={7200} />
+    </div>
   );
 }
